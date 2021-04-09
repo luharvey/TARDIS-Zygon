@@ -749,7 +749,7 @@ class full_model():
 				outfile.write('\n')
 
 	#Function to export the model as a file ready for use in TARDIS
-	def export_slice_profile(self, filename, vel_low, vel_high, slice_shells):
+	def export_slice_profile_velocity(self, filename, vel_low, vel_high, slice_shells):
 
 		old_step = (self.stop_vel - self.start_vel)/self.shells
 		old_shell_vels = np.arange(self.start_vel + old_step/2, self.stop_vel - old_step/2 + 1, old_step)
@@ -763,6 +763,50 @@ class full_model():
 			new_abundance_data[i] = element_profile(i, slice_shells)
 
 			new_abundance_data[i].profile = np.interp(new_shell_vels, old_shell_vels, self.abundance_data[i].profile)
+
+		#Pass through and normalise each of the shells
+		for n in range(slice_shells):
+			summation = 0
+			for element in self.symbol_array:
+				summation += new_abundance_data[element].profile[n]
+
+			scale_factor = 1/summation
+			for element in self.symbol_array:
+				new_abundance_data[element].profile[n] = new_abundance_data[element].profile[n] * scale_factor
+
+		#Arranging the data to write
+		lines = []
+		for k in range(slice_shells):
+			lines.append([])
+			for h in range(len(self.symbol_array)):
+				lines[k].append(new_abundance_data[self.symbol_array[h]].profile[k])
+
+		capitalised_elements = self.symbol_array.copy()
+		#Writing the data to file
+		with open(filename, 'w') as outfile:
+			outfile.write('Index ')
+			for e in capitalise_array(capitalised_elements):
+				outfile.write(e + ' ')
+			outfile.write('\n\n')
+			for i in range(len(lines)):
+				outfile.write(str(i) + ' ')
+				for j in lines[i]:
+					outfile.write(str( '%0.4f' % j ) + ' ')
+				outfile.write('\n')
+
+	#Function to export the model as a file ready for use in TARDIS
+	def export_slice_profile(self, filename, shell_low, shell_high, slice_shells):
+
+		old_shells = np.arange(1, self.shells + 1, 1)
+
+		new_shells = np.linspace(shell_low, shell_high, slice_shells)
+
+		new_abundance_data = {}
+
+		for i in self.symbol_array:
+			new_abundance_data[i] = element_profile(i, slice_shells)
+
+			new_abundance_data[i].profile = np.interp(new_shells, old_shells, self.abundance_data[i].profile)
 
 		#Pass through and normalise each of the shells
 		for n in range(slice_shells):
