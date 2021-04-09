@@ -16,6 +16,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import sys
+from jupyterthemes import jtplot
+jtplot.style(theme='monokai', context='notebook', ticks=True, grid=False)
 
 dimensions = (7, 5)
 full_dimensions = (8, 5)
@@ -25,7 +27,7 @@ colour_step = 5
 #Matplotlib markers and linestyles to cycle through for each of the different elements
 markers = ['o']
 linestyles = ['-']
-grey = '#000000'
+grey = '#FFFFFF'
 
 def where(array, value):
 	index = 0
