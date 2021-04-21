@@ -621,7 +621,7 @@ class full_model():
 	#█ █▄░█ █ ▀█▀ █ ▄▀█ █░░ █ █▀ ▄▀█ ▀█▀ █ █▀█ █▄░█
 	#█ █░▀█ █ ░█░ █ █▀█ █▄▄ █ ▄█ █▀█ ░█░ █ █▄█ █░▀█
 	
-	def __init__(self, symbol_array = ['c', 'o', 'na', 'mg', 'si', 's', 'ca', 'ti', 'cr', 'fe', 'ni'], shells = 30, velocities = (0, 25000)):
+	def __init__(self, symbol_array = ['c', 'o', 'na', 'mg', 'si', 's', 'ca', 'ti', 'cr', 'fe', 'ni'], shells = 30, velocities = (0, 25000), init_density = 1e-13):
 		#Establishing the number of shells as well as an array 'x' for plotting
 		self.shells = shells
 		self.x = np.arange(1, shells+1, 1)
@@ -630,6 +630,7 @@ class full_model():
 
 		#All the 'element_profile' instances will be stored in the dictionary 'data' each with their corresponding symbol
 		self.abundance_data = {}
+		self.density_data = density_profile(shells, velocities, init_density)
 		
 		#Storing the list of requested elements as a parameter
 		self.symbol_array = []
@@ -666,6 +667,7 @@ class full_model():
 	#█▀▀ █▄▄ █▄█ ░█░ ▄█
 	
 	#Function to display the elemental abundance profiles as a plot
+	"""
 	def plot(self):
 		self.abundance_fig = plt.figure(num = 'Abundance Profile', figsize = full_dimensions)
 		self.abundance_ax = self.abundance_fig.add_subplot(1, 1, 1)
@@ -692,6 +694,57 @@ class full_model():
 		self.abundance_ax.legend()
 		plt.tight_layout()
 		plt.show()
+	"""
+	def plot(self):
+		self.combined = True
+
+		self.combined_fig = plt.figure(num = 'Profiles', figsize = full_dimensions)
+		self.abundance_ax = self.combined_fig.add_subplot(1, 1, 1)
+		self.density_ax = self.combined_fig.add_subplot(1, 1, 1, frame_on = False)
+
+		#Each line will be stored in the dictionary 'lines' - similar to the 'data' dictionary they can be called by their corresponding symbol
+		self.lines = {}
+		for i in range(len(self.symbol_array)):
+			self.lines[self.symbol_array[i]], = self.abundance_ax.plot(self.x, self.abundance_data[self.symbol_array[i]].profile,\
+				marker = markers[i%len(markers)], label = self.symbol_array[i], color = self.colours[i],\
+				linestyle = linestyles[i%len(linestyles)])
+
+		
+		self.density_ax.tick_params(axis="y", left=False, right=True, labelleft=False, labelright=True)
+		self.density_ax.yaxis.set_label_position('right')
+		miny, maxy = np.amin(self.density_data.profile), np.amax(self.density_data.profile)
+		#self.density_ax.yaxis.set_major_formatter(FormatStrFormatter('%.4f'))
+		if miny == maxy:
+			self.density_ax.set_ylim(0, 2*self.density_data.init_density)
+		else:
+			self.density_ax.set_ylim(miny, maxy)
+		self.density_ax.yaxis.set_label_coords(1.11, 0.5)
+		self.density_ax.set_xlabel(r"Veloctiy ($km$ $s^{-1}$)")
+		self.density_ax.tick_params(axis="x", bottom=False, top=True, labelbottom=False, labeltop=True)
+		self.density_ax.xaxis.set_label_position('top')
+		self.density_ax.set_xlim(self.start_vel, self.stop_vel)
+		#self.density_ax.yaxis.offsetText.set_visible(False)
+		self.density_ax.yaxis.set_offset_position('right')
+		self.density_ax.set_ylabel(r"Density ($g$ $cm^{-3}$)", rotation = 270)
+
+		#Each line will be stored in the dictionary 'lines' - similar to the 'data' dictionary they can be called by their corresponding symbol
+		self.density_line, = self.density_ax.plot(self.density_data.vels, self.density_data.profile, marker = 'X',\
+			label = r"$\rho$ profile", color = grey, linestyle = '-.')
+
+		#Plot housekeeping
+		self.abundance_ax.set_xlim(0.5, self.shells+0.5)
+		self.abundance_ax.set_xlabel('Shell number')
+		self.abundance_ax.set_ylim(0, 1)
+		self.abundance_ax.set_xticks(self.tick_locs)
+		self.abundance_ax.set_ylabel('Mass fraction')
+
+		handles, labels = [(a + b) for a, b in zip(self.abundance_ax.get_legend_handles_labels(), self.density_ax.get_legend_handles_labels())]
+
+		#self.combined_fig.legend(handles, labels)
+		self.abundance_ax.legend(handles, labels)
+		plt.tight_layout()
+		plt.show()
+
 
 	#▄▀█ █▄▄ █░█ █▄░█ █▀▄ ▄▀█ █▄░█ █▀▀ █▀▀   █▀ █░░ █ █▀▄ █▀▀ █▀█ █▀
 	#█▀█ █▄█ █▄█ █░▀█ █▄▀ █▀█ █░▀█ █▄▄ ██▄   ▄█ █▄▄ █ █▄▀ ██▄ █▀▄ ▄█
@@ -747,7 +800,7 @@ class full_model():
 				for j in lines[i]:
 					outfile.write(str( '%0.4f' % j ) + ' ')
 				outfile.write('\n')
-
+	"""
 	#Function to export the model as a file ready for use in TARDIS
 	def export_slice_profile_velocity(self, filename, vel_low, vel_high, slice_shells):
 
@@ -793,11 +846,52 @@ class full_model():
 				for j in lines[i]:
 					outfile.write(str( '%0.4f' % j ) + ' ')
 				outfile.write('\n')
-
+	"""
 	#Function to export the model as a file ready for use in TARDIS
-	def export_slice_profile(self, filename, shell_low, shell_high, slice_shells):
-
+	def export_abundance_slice(self, filename, shell_low, shell_high, slice_shells = 11):
 		old_shells = np.arange(1, self.shells + 1, 1)
+
+		new_shells = np.linspace(shell_low, shell_high, slice_shells)
+
+		new_abundance_data = {}
+
+		for i in self.symbol_array:
+			new_abundance_data[i] = element_profile(i, slice_shells)
+
+			new_abundance_data[i].profile = np.interp(new_shells, old_shells, self.abundance_data[i].profile)
+
+		#Pass through and normalise each of the shells
+		for n in range(slice_shells):
+			summation = 0
+			for element in self.symbol_array:
+				summation += new_abundance_data[element].profile[n]
+
+			scale_factor = 1/summation
+			for element in self.symbol_array:
+				new_abundance_data[element].profile[n] = new_abundance_data[element].profile[n] * scale_factor
+
+		#Arranging the data to write
+		lines = []
+		for k in range(slice_shells):
+			lines.append([])
+			for h in range(len(self.symbol_array)):
+				lines[k].append(new_abundance_data[self.symbol_array[h]].profile[k])
+
+		capitalised_elements = self.symbol_array.copy()
+		#Writing the data to file
+		with open(filename, 'w') as outfile:
+			outfile.write('Index ')
+			for e in capitalise_array(capitalised_elements):
+				outfile.write(e + ' ')
+			outfile.write('\n\n')
+			for i in range(len(lines)):
+				outfile.write(str(i) + ' ')
+				for j in lines[i]:
+					outfile.write(str( '%0.4f' % j ) + ' ')
+				outfile.write('\n')
+
+	def export_density_slice(self, filename, shell_low, shell_high, slice_shells = 11):
+		old_shells = np.arange(0.5, self.shells + 0.6, 1)
 
 		new_shells = np.linspace(shell_low, shell_high, slice_shells)
 
@@ -843,7 +937,7 @@ class full_model():
 	#█ █░▀░█ █▀▀ █▄█ █▀▄ ░█░
 
 	#Function to import an abundance model
-	def import_full_profile(self, filename, index = True):
+	def import_abundance_full(self, filename, index = True):
 		with open(filename, 'r') as infile:
 			infile_lines = infile.readlines()	
 
@@ -902,6 +996,50 @@ class full_model():
 			self.abundance_data[elements[i]].change_profile(new_profiles[i])
 
 		self.init_colours()
+
+	def import_density_full(self, filename):
+		with open(filename, 'r') as infile:
+			infile_lines = infile.readlines()[2:]
+
+		in_vel = []
+		in_den = []
+
+		for i in infile_lines:
+			line = i.split(sep = ' ')
+			in_vel.append(float(line[1]))
+			in_den.append(float(line[2]))
+
+		if self.shells > len(infile_lines) - 1:
+			print("WARNING: The density file " + filename + " has less shells than the model. This will cause interpolation of the current abundance profile to match.")
+			#INTERPOLATE CURRENT ABUNDANCE PROFILE
+			interp_shells = np.linspace(np.amin(self.x), np.amax(self.x), len(infile_lines)-1)
+			
+			for i in self.symbol_array:
+				self.abundance_data[i].profile = np.interp(interp_shells, self.x, self.abundance_data[i].profile)
+
+			self.x = np.arange(1, len(infile_lines), 1)
+			#INTERPOLATE CURRENT ABUNDANCE PROFILE
+
+		if self.shells < len(infile_lines) - 1:
+			print("WARNING: The density file " + filename + " has more shells than the model. This will cause padding of the current abundance profile to match.")
+			#PAD CURRENT ABUNDANCE PROFILE
+			for i in range(self.shells, len(infile_lines)-1):
+				self.x = np.append(self.x, i+1)
+
+				for h in self.symbol_array:
+					self.abundance_data[h].profile = np.append(self.abundance_data[h].profile, 0)
+			#PAD CURRENT ABUNDANCE PROFILE
+
+		self.shells = len(infile_lines) - 1
+
+		self.tick_locs = []
+		for i in range(self.shells):
+			self.tick_locs.append(i + 1)
+
+		self.start_vel = in_vel[0]
+		self.stop_vel = in_vel[len(in_vel) - 1]
+		self.density_data.vels = np.array(in_vel)
+		self.density_data.profile = np.array(in_den)
 
 	def set_velocities(self, start, stop):
 		self.start_vel = start 
