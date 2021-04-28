@@ -1,0 +1,13 @@
+---
+name: csvy_full
+model_density_time_0: DAY d
+model_isotope_time_0: 0.0 d
+tardis_model_config_version: v1.0
+datatype:
+  fields:
+    -  name: velocity
+       unit: km/s
+       desc: velocities of shell outer bounderies.
+    -  name: density
+       unit: g/cm^3
+       desc: density of shell.
