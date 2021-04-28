@@ -16,18 +16,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import sys
-
-
+from jupyterthemes import jtplot
+jtplot.style(theme='monokai', context='notebook', ticks=True, grid=False)
 
 dimensions = (7, 5)
 full_dimensions = (8, 5)
+
+root_path = os.path.dirname(__file__)
 
 #Used as the resolution to create the list from which line colours will be extracted
 colour_step = 5
 #Matplotlib markers and linestyles to cycle through for each of the different elements
 markers = ['o']
 linestyles = ['-']
-grey = '#000000'
+grey = '#FFFFFF'
 
 def where(array, value):
 	index = 0
@@ -652,6 +654,7 @@ class full_model():
 
 	#Add element_profile classes to the dictionary 'data'
 	def write_new_element(self, symbol):
+
 		self.abundance_data[symbol] = element_profile(symbol, self.shells)
 
 	def init_colours(self):
@@ -666,35 +669,6 @@ class full_model():
 	#█▀█ █░░ █▀█ ▀█▀ █▀
 	#█▀▀ █▄▄ █▄█ ░█░ ▄█
 	
-	#Function to display the elemental abundance profiles as a plot
-	"""
-	def plot(self):
-		self.abundance_fig = plt.figure(num = 'Abundance Profile', figsize = full_dimensions)
-		self.abundance_ax = self.abundance_fig.add_subplot(1, 1, 1)
-
-		#Each line will be stored in the dictionary 'lines' - similar to the 'data' dictionary they can be called by their corresponding symbol
-		self.lines = {}
-		for i in range(len(self.symbol_array)):
-			self.lines[self.symbol_array[i]], = self.abundance_ax.plot(self.x, self.abundance_data[self.symbol_array[i]].profile,\
-				marker = markers[i%len(markers)], label = self.symbol_array[i], color = self.colours[i],\
-				linestyle = linestyles[i%len(linestyles)])
-
-		#Plot housekeeping
-		self.abundance_ax.set_xlim(0.5, self.shells+0.5)
-
-		self.abundance_ax_x = plt.gca().twiny()
-		self.abundance_ax_x.tick_params(axis="x", bottom=False, top=True, labelbottom=False, labeltop=True)
-		self.abundance_ax_x.set_xlabel(r"Veloctiy ($km$ $s^{-1}$)")
-		self.abundance_ax_x.set_xlim(self.start_vel, self.stop_vel)
-
-		self.abundance_ax.set_ylim(0, 1)
-		self.abundance_ax.set_xticks(self.tick_locs)
-		self.abundance_ax.set_xlabel('Shell number')
-		self.abundance_ax.set_ylabel('Mass fraction')
-		self.abundance_ax.legend()
-		plt.tight_layout()
-		plt.show()
-	"""
 	def plot(self):
 		self.combined = True
 
@@ -745,7 +719,6 @@ class full_model():
 		plt.tight_layout()
 		plt.show()
 
-
 	#▄▀█ █▄▄ █░█ █▄░█ █▀▄ ▄▀█ █▄░█ █▀▀ █▀▀   █▀ █░░ █ █▀▄ █▀▀ █▀█ █▀
 	#█▀█ █▄█ █▄█ █░▀█ █▄▀ █▀█ █░▀█ █▄▄ ██▄   ▄█ █▄▄ █ █▄▀ ██▄ █▀▄ ▄█
 	
@@ -770,7 +743,7 @@ class full_model():
 	#██▄ █░█ █▀▀ █▄█ █▀▄ ░█░
 
 	#Function to export the model as a file ready for use in TARDIS
-	def export_full_profile(self, filename):
+	def export_abundance(self, filename):
 		#Pass through and normalise each of the shells
 		for n in range(self.shells):
 			summation = 0
@@ -800,55 +773,10 @@ class full_model():
 				for j in lines[i]:
 					outfile.write(str( '%0.4f' % j ) + ' ')
 				outfile.write('\n')
-	"""
+
 	#Function to export the model as a file ready for use in TARDIS
-	def export_slice_profile_velocity(self, filename, vel_low, vel_high, slice_shells):
-
-		old_step = (self.stop_vel - self.start_vel)/self.shells
-		old_shell_vels = np.arange(self.start_vel + old_step/2, self.stop_vel - old_step/2 + 1, old_step)
-
-		new_step = (vel_high - vel_low)/slice_shells
-		new_shell_vels = np.arange(vel_low + new_step/2, vel_high - new_step/2 + 1, new_step)
-
-		new_abundance_data = {}
-
-		for i in self.symbol_array:
-			new_abundance_data[i] = element_profile(i, slice_shells)
-
-			new_abundance_data[i].profile = np.interp(new_shell_vels, old_shell_vels, self.abundance_data[i].profile)
-
-		#Pass through and normalise each of the shells
-		for n in range(slice_shells):
-			summation = 0
-			for element in self.symbol_array:
-				summation += new_abundance_data[element].profile[n]
-
-			scale_factor = 1/summation
-			for element in self.symbol_array:
-				new_abundance_data[element].profile[n] = new_abundance_data[element].profile[n] * scale_factor
-
-		#Arranging the data to write
-		lines = []
-		for k in range(slice_shells):
-			lines.append([])
-			for h in range(len(self.symbol_array)):
-				lines[k].append(new_abundance_data[self.symbol_array[h]].profile[k])
-
-		capitalised_elements = self.symbol_array.copy()
-		#Writing the data to file
-		with open(filename, 'w') as outfile:
-			outfile.write('Index ')
-			for e in capitalise_array(capitalised_elements):
-				outfile.write(e + ' ')
-			outfile.write('\n\n')
-			for i in range(len(lines)):
-				outfile.write(str(i) + ' ')
-				for j in lines[i]:
-					outfile.write(str( '%0.4f' % j ) + ' ')
-				outfile.write('\n')
-	"""
-	#Function to export the model as a file ready for use in TARDIS
-	def export_abundance_slice(self, filename, shell_low, shell_high, slice_shells = 11):
+	def export_abundance_slice(self, filename = 'abundance_slice_output.dat', shells = (1, 2), slice_shells = 2):
+		shell_low, shell_high = shells
 		old_shells = np.arange(1, self.shells + 1, 1)
 
 		new_shells = np.linspace(shell_low, shell_high, slice_shells)
@@ -890,7 +818,8 @@ class full_model():
 					outfile.write(str( '%0.4f' % j ) + ' ')
 				outfile.write('\n')
 
-	def export_density_slice(self, filename, shell_low, shell_high, slice_shells = 11):
+	def export_density_slice(self, filename = 'density_slice_output.txt', shells = (1, 2), slice_shells = 2):
+		shell_low, shell_high = shells
 		old_shells = np.arange(0.5, self.shells + 0.6, 1)
 
 		new_shells = np.linspace(shell_low, shell_high, slice_shells)
@@ -932,12 +861,52 @@ class full_model():
 					outfile.write(str( '%0.4f' % j ) + ' ')
 				outfile.write('\n')
 
+	def export_csvy(self, filename = 'csvy_output.csvy', day = 'INSERT_DAY', velocities = ('INSERT_INNER_VELOCITY', 'INSERT_OUTER_VELOCITY')):
+		with open(root_path + "/csvy_template.txt", 'r') as file:
+			lines = file.readlines()
+
+		output = []
+		for i in lines:
+			if 'model_density_time_0:' in i:
+				time_line = i.split(sep = ' ')
+				time_line[1] = str(day)
+				reconstructed = time_line[0] + ' ' + time_line[1] + ' ' + time_line[2]
+				output.append(reconstructed)
+			else:
+				output.append(i)
+
+		capitalised_elements = capitalise_array(self.symbol_array.copy())
+
+		for symbol in capitalised_elements:
+			output.append('    -  name: ' + symbol + '\n       desc: fractional ' + symbol + ' abundance\n')
+
+		output.append('\n\nv_inner_boundary: ' + str(velocities[0]) + ' km/s\nv_outer_boundary: ' + str(velocities[1]) + ' km/s\n---\n')
+
+		csv_header = 'velocity,density'
+
+		for symbol in capitalised_elements:
+			csv_header += ',' + symbol
+
+		output.append(csv_header)
+
+		for i in range(self.shells):
+			csv_line = str(self.density_data.vels[i+1]) + ',' + str(self.density_data.profile[i+1])
+
+			for symbol in self.symbol_array:
+				csv_line += ',' + str(self.abundance_data[symbol].profile[i])
+
+			csv_line += '\n'
+			output.append(csv_line)
+
+		with open(filename, 'w') as file:
+			for i in output:
+				file.write(i)
 
 	#█ █▀▄▀█ █▀█ █▀█ █▀█ ▀█▀
 	#█ █░▀░█ █▀▀ █▄█ █▀▄ ░█░
 
 	#Function to import an abundance model
-	def import_abundance_full(self, filename, index = True):
+	def import_abundance(self, filename, index = True):
 		with open(filename, 'r') as infile:
 			infile_lines = infile.readlines()	
 
@@ -997,7 +966,7 @@ class full_model():
 
 		self.init_colours()
 
-	def import_density_full(self, filename):
+	def import_density(self, filename):
 		with open(filename, 'r') as infile:
 			infile_lines = infile.readlines()[2:]
 
