@@ -11,6 +11,8 @@ An accompanying notebook can be found the GitHub repo.
 08/04/2021 - Adding functionality to build a full abundance model for the supernova and then take slices as the profiles at different epochs as the photosphere receeds.
 
 28/04/2021 - Rewrote the export_csvy function that I accidentally deleted. Cleaning up the Git structure before I add documentation comments for sphinx.
+
+29/04/2021 - Couldn't get sphinx to play nicely so I've scrapped it.
 """
 
 from ipywidgets import *
