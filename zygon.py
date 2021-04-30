@@ -102,7 +102,7 @@ def capitalise_array(array):
 #Class to hold the profile array - mass fractions per shell
 class element_profile():
 	def __init__(self, symbol, shells):
-		self.profile = np.zeros(shells)	
+		self.profile = np.zeros(shells) 
 
 	#Function to rewrite the profile array
 	def change_profile(self, new):
@@ -300,7 +300,7 @@ class model():
 	def density_point_slider(self, velocity, index):
 		index = where(self.density_data.vels, velocity)
 		current = self.density_data.profile[index]
-		log_current = np.log10(current)		
+		log_current = np.log10(current)     
 
 		interact(self.edit_density_datapoint, velocity = fixed(velocity),\
 			density = FloatSlider(min=log_current-1, max=log_current+1, step=0.001, description = str(index) + "/" + str(index+1), value = log_current))
@@ -478,6 +478,7 @@ class model():
 
 		for symbol in capitalised_elements:
 			csv_header += ',' + symbol
+		csv_header += '\n'
 
 		output.append(csv_header)
 
@@ -500,7 +501,7 @@ class model():
 	#Function to import an abundance model
 	def import_abundance(self, filename, index = True):
 		with open(filename, 'r') as infile:
-			infile_lines = infile.readlines()	
+			infile_lines = infile.readlines()   
 
 		if index:
 			start = 1
@@ -517,12 +518,12 @@ class model():
 			if len(j) == 1:
 				continue
 			else:
-				shell_comps.append( clean_newline(j.split(sep = ' '))[start:] )	
+				shell_comps.append( clean_newline(j.split(sep = ' '))[start:] ) 
 
 		#Arranging this data to create a 'model' instance
 		new_profiles = []
 		for k in elements:
-			new_profiles.append(np.zeros(len(shell_comps)))	
+			new_profiles.append(np.zeros(len(shell_comps))) 
 
 		for i in range(len(shell_comps)):
 			for j in range(len(shell_comps[i])):
