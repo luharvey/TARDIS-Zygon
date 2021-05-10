@@ -264,6 +264,12 @@ class model():
 		plt.tight_layout()
 		plt.show()
 
+	def v_marker(self, velocity):
+		self.density_ax.axvline(velocity, color = '#FFFFFF', linestyle = ':')
+
+	def h_marker(self, mass_fraction):
+		self.abundance_ax.axhline(mass_fraction, color = '#FFFFFF', linestyle = ':')
+
 	#▄▀█ █▄▄ █░█ █▄░█ █▀▄ ▄▀█ █▄░█ █▀▀ █▀▀   █▀ █░░ █ █▀▄ █▀▀ █▀█ █▀
 	#█▀█ █▄█ █▄█ █░▀█ █▄▀ █▀█ █░▀█ █▄▄ ██▄   ▄█ █▄▄ █ █▄▀ ██▄ █▀▄ ▄█
 	
@@ -331,7 +337,7 @@ class model():
 		if law.lower() == 'exp' or law.lower() == 'exponential':
 			#self.curve_law = True
 			#interact(self.edit_density_curve_exp, a = FloatSlider(min=0.01, max=20.0, step=0.01), rho0_index = FloatSlider(min=-20, max=-12, step=0.1, description = 'rho0'))
-			interact(self.edit_density_curve_exp, vel_0 = FloatSlider(min=0.1*self.start_vel, max=2*self.stop_vel, step=10, description = "v0"), rho0_index = FloatSlider(min=-14, max=-9, step=0.01, description = "rho0"))
+			interact(self.edit_density_curve_exp, vel_0 = FloatSlider(min=0.1*self.start_vel, max=2*self.stop_vel, step=10, description = "v0"), rho0_index = FloatSlider(min=-14, max=-8, step=0.01, description = "rho0"))
 
 
 		if law.lower() == 'power':
@@ -472,7 +478,12 @@ class model():
 		for symbol in capitalised_elements:
 			output.append('    -  name: ' + symbol + '\n       desc: fractional ' + symbol + ' abundance\n')
 
-		output.append('\n\nv_inner_boundary: ' + str(velocities[0]) + ' km/s\nv_outer_boundary: ' + str(velocities[1]) + ' km/s\n---\n')
+		if velocities[0] != None and velocities[1] != None:
+			output.append('\n\nv_inner_boundary: ' + str(velocities[0]) + ' km/s\nv_outer_boundary: ' + str(velocities[1]) + ' km/s\n---\n')
+		if velocities[0] != None and velocities[1] == None:
+			output.append('\n\nv_inner_boundary: ' + str(velocities[0]) + ' km/s\n---\n')
+		if velocities[0] == None and velocities[1] != None:
+			output.append('\n\nv_outer_boundary: ' + str(velocities[1]) + ' km/s\n---\n')
 
 		csv_header = 'velocity,density'
 
